@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -6,6 +7,17 @@ namespace Monogame_4__Time_and_Sound
 {
     public class Game1 : Game
     {
+        Texture2D bombTexture;
+        Rectangle bombRect;
+        Texture2D expolsionTexture;
+        Rectangle expolsionRect;
+        private SpriteFont timeFont;
+        float seconds;
+        float startTime;
+        MouseState mouseState;
+        SoundEffect explode;
+        bool bombExploded;
+
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -18,7 +30,14 @@ namespace Monogame_4__Time_and_Sound
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
+            _graphics.PreferredBackBufferWidth = 800;
+            _graphics.PreferredBackBufferHeight = 500;
+            _graphics.ApplyChanges();
+            this.Window.Title = "Bomb Game";
+            bombExploded = false;
+
+            bombRect = new Rectangle(50, 50, 700, 400);
+            expolsionRect = new Rectangle(-100, -10, 1000, 500);
 
             base.Initialize();
         }
@@ -27,24 +46,52 @@ namespace Monogame_4__Time_and_Sound
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
+            bombTexture = Content.Load<Texture2D>("bomb");
+            timeFont = Content.Load<SpriteFont>("Time");
+            explode = Content.Load<SoundEffect>("explosion");
+            expolsionTexture = Content.Load<Texture2D>("explosionPic");
         }
 
         protected override void Update(GameTime gameTime)
         {
+            mouseState = Mouse.GetState();
+
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
+            seconds = (float)gameTime.TotalGameTime.TotalSeconds - startTime;
+            if (seconds >= 15)
+            {
+                bombExploded = true;
+                explode.Play();
+                //while (explode.Play() == true)
+                //{
+                    startTime = (float)gameTime.TotalGameTime.TotalSeconds;
+                //}
+                //Exit();
+            }
+            else if (mouseState.LeftButton == ButtonState.Pressed)
+            {
+                startTime = (float)gameTime.TotalGameTime.TotalSeconds;
+            }           
+
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.MistyRose);
 
-            // TODO: Add your drawing code here
+            _spriteBatch.Begin();
+            _spriteBatch.Draw(bombTexture, bombRect, Color.White);
+            //make it count down
+            _spriteBatch.DrawString(timeFont, seconds.ToString("00.0"), new Vector2(270, 200), Color.Black);
+            if (bombExploded == true)
+            {
+                _spriteBatch.Draw(expolsionTexture, expolsionRect, Color.White);
+            }
+            _spriteBatch.End();
 
             base.Draw(gameTime);
         }
