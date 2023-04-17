@@ -11,12 +11,16 @@ namespace Monogame_4__Time_and_Sound
         Rectangle bombRect;
         Texture2D expolsionTexture;
         Rectangle expolsionRect;
+        Texture2D collisionTexture;       
+        Rectangle collisionRect;
+        Rectangle collisionRect2;
         private SpriteFont timeFont;
         float seconds;
         float startTime;
         MouseState mouseState;
         SoundEffect explode;
         bool bombExploded;
+        bool explosionPlaying;
         SoundEffectInstance soundEffectInstance;
 
         private GraphicsDeviceManager _graphics;
@@ -36,10 +40,12 @@ namespace Monogame_4__Time_and_Sound
             _graphics.ApplyChanges();
             this.Window.Title = "Bomb Game";
             bombExploded = false;
+            explosionPlaying = false;
 
             bombRect = new Rectangle(50, 50, 700, 400);
-            expolsionRect = new Rectangle(-100, -10, 1000, 500);
-            startTime = 15;
+            expolsionRect = new Rectangle(-100, -10, 1000, 500);  
+            collisionRect = new Rectangle(253, 136, 10, 10);
+            collisionRect2 = new Rectangle(740, 188, 10, 50);
 
             base.Initialize();
         }
@@ -52,7 +58,9 @@ namespace Monogame_4__Time_and_Sound
             timeFont = Content.Load<SpriteFont>("Time");
             explode = Content.Load<SoundEffect>("explosion");
             expolsionTexture = Content.Load<Texture2D>("explosionPic");
+            collisionTexture = Content.Load<Texture2D>("rectangle");
             soundEffectInstance = explode.CreateInstance();
+            soundEffectInstance.IsLooped = false;
         }
 
         protected override void Update(GameTime gameTime)
@@ -62,20 +70,31 @@ namespace Monogame_4__Time_and_Sound
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            seconds = startTime - (float)gameTime.TotalGameTime.TotalSeconds;
-            if (seconds <= 0)
-            {                        
-                soundEffectInstance.Play();
-                while (soundEffectInstance.State == SoundState.Playing)
+            seconds = (float)gameTime.TotalGameTime.TotalSeconds - startTime;
+            if (seconds >= 15)
+            {
+                if (!bombExploded)
                 {
                     bombExploded = true;
+                    soundEffectInstance.Play();
+
                 }
-                Exit();
-            }
+
+                else if (bombExploded && soundEffectInstance.State == SoundState.Stopped)
+                {
+                    Exit();
+                }
+
+            }           
             else if (mouseState.LeftButton == ButtonState.Pressed)
             {
-                startTime = (float)gameTime.TotalGameTime.TotalSeconds;
-            }          
+                if (collisionRect.Contains(mouseState.X, mouseState.Y))
+                {
+                    startTime = (float)gameTime.TotalGameTime.TotalSeconds;
+                }                   
+            }
+            else if (mouseState.LeftButton == ButtonState.Pressed)
+                
 
             base.Update(gameTime);
         }
@@ -85,12 +104,19 @@ namespace Monogame_4__Time_and_Sound
             GraphicsDevice.Clear(Color.MidnightBlue);
 
             _spriteBatch.Begin();
-            _spriteBatch.Draw(bombTexture, bombRect, Color.White);           
-            _spriteBatch.DrawString(timeFont, seconds.ToString("00.0"), new Vector2(270, 200), Color.Black);
-            if (bombExploded == true)
-            {
+            _spriteBatch.Draw(collisionTexture, collisionRect2, Color.MidnightBlue);
+            _spriteBatch.Draw(collisionTexture, collisionRect, Color.White);
+
+            if (bombExploded)
                 _spriteBatch.Draw(expolsionTexture, expolsionRect, Color.White);
-            }        
+            else
+            { 
+                _spriteBatch.Draw(bombTexture, bombRect, Color.White);           
+                _spriteBatch.DrawString(timeFont, (15 - seconds).ToString("00.0"), new Vector2(270, 200), Color.Black);         
+            }
+               
+              
+                     
             _spriteBatch.End();
 
             base.Draw(gameTime);
