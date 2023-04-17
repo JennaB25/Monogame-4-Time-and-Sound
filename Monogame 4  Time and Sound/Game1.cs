@@ -62,21 +62,20 @@ namespace Monogame_4__Time_and_Sound
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            seconds = 15 - (float)gameTime.TotalGameTime.TotalSeconds;
+            seconds = startTime - (float)gameTime.TotalGameTime.TotalSeconds;
             if (seconds <= 0)
-            {
-                bombExploded = true;
+            {                        
                 soundEffectInstance.Play();
-                if (soundEffectInstance.State == SoundState.Stopped)
+                while (soundEffectInstance.State == SoundState.Playing)
                 {
-                    Exit();
-                }                                                
+                    bombExploded = true;
+                }
+                Exit();
             }
             else if (mouseState.LeftButton == ButtonState.Pressed)
             {
                 startTime = (float)gameTime.TotalGameTime.TotalSeconds;
-            }           
-
+            }          
 
             base.Update(gameTime);
         }
@@ -91,7 +90,7 @@ namespace Monogame_4__Time_and_Sound
             if (bombExploded == true)
             {
                 _spriteBatch.Draw(expolsionTexture, expolsionRect, Color.White);
-            }
+            }        
             _spriteBatch.End();
 
             base.Draw(gameTime);
